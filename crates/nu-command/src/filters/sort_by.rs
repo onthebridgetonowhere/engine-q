@@ -155,7 +155,7 @@ pub fn process(
 #[derive(Debug)]
 pub enum CompareValues {
     Ints(i64, i64),
-    // Floats(f64, f64),
+    Floats(f64, f64),
     String(String, String),
     Booleans(bool, bool),
     Filesize(i64, i64),
@@ -166,8 +166,7 @@ impl CompareValues {
     pub fn compare(&self) -> std::cmp::Ordering {
         match self {
             CompareValues::Ints(left, right) => left.cmp(right),
-            // f64: std::cmp::Ord is required
-            // CompareValues::Floats(left, right) => left.cmp(right),
+            CompareValues::Floats(left, right) => left.partial_cmp(right).unwrap(),
             CompareValues::String(left, right) => left.cmp(right),
             CompareValues::Booleans(left, right) => left.cmp(right),
             CompareValues::Filesize(left, right) => left.cmp(right),
@@ -181,17 +180,15 @@ pub fn coerce_compare(
     right: &Value,
 ) -> Result<CompareValues, (&'static str, &'static str)> {
     match (left, right) {
-        // (Value::Float { val: left, .. }, Value::Float { val: right, .. }) => {
-        //     Ok(CompareValues::Floats(*left, *right))
-        // }
+        (Value::Float { val: left, .. }, Value::Float { val: right, .. }) => {
+            Ok(CompareValues::Floats(*left, *right))
+        }
         (Value::Filesize { val: left, .. }, Value::Filesize { val: right, .. }) => {
             Ok(CompareValues::Filesize(*left, *right))
         }
-
         (Value::Date { val: left, .. }, Value::Date { val: right, .. }) => {
             Ok(CompareValues::Date(*left, *right))
         }
-
         (Value::Int { val: left, .. }, Value::Int { val: right, .. }) => {
             Ok(CompareValues::Ints(*left, *right))
         }
